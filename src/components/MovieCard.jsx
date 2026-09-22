@@ -92,11 +92,6 @@ export default function MovieCard({ item, type }) {
         <div className="movie-card-title" title={title}>{title}</div>
         <div className="movie-card-meta">
           <span>{year || '—'}</span>
-          {ratingStr && (
-            <span className="movie-card-rating" style={{ color: ratingColor }}>
-              ★ {ratingStr}
-            </span>
-          )}
         </div>
       </div>
     </article>

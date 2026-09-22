@@ -1129,11 +1129,11 @@ input {
    MOVIE CARD — OVERLAY ICONS
    ============================================ */
 
-/* Rating pill — top LEFT of poster */
+/* Rating pill — bottom RIGHT of poster */
 .card-rating-pill {
   position: absolute;
-  top: 8px;
-  left: 8px;
+  bottom: 8px;
+  right: 8px;
   z-index: 3;
   padding: 3px 8px;
   background: rgba(0, 0, 0, 0.75);
