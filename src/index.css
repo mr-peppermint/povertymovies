@@ -1594,6 +1594,10 @@ input {
   to   { width: 100%; }
 }
 
+.spotlight.is-paused .spotlight-progress {
+  animation-play-state: paused;
+}
+
 /* Mobile adjustments */
 @media (max-width: 767px) {
   .spotlight {

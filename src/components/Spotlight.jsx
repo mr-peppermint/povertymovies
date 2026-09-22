@@ -1,14 +1,13 @@
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Link } from 'react-router-dom'
 import { IMG_ORIGINAL, IMG_W500 } from '../api/tmdb'
 import { useWatchLater } from '../hooks/useWatchLater'
 
-const INTERVAL = 5000 // 5 seconds
+const INTERVAL = 5000 // exact 5 seconds
 
 function StarRating({ value, count }) {
-  // value is 0-10, render 5 filled/half/empty stars
   const stars = []
-  const scaled = value / 2 // 0-5
+  const scaled = value / 2
   for (let i = 1; i <= 5; i++) {
     if (scaled >= i) stars.push('full')
     else if (scaled >= i - 0.5) stars.push('half')
@@ -29,42 +28,42 @@ function StarRating({ value, count }) {
 
 export default function Spotlight({ items = [] }) {
   const [activeIdx, setActiveIdx] = useState(0)
-  const [animating, setAnimating] = useState(false)
-  const [direction, setDirection] = useState('next') // 'next' | 'prev'
-  const timerRef = useRef(null)
+  const [slideKey, setSlideKey] = useState(0)
+  const [direction, setDirection] = useState('next')
+  const [isPaused, setIsPaused] = useState(false)
   const { toggle, isSaved } = useWatchLater()
 
-  const goTo = useCallback((idx, dir = 'next') => {
-    if (animating || idx === activeIdx) return
-    setDirection(dir)
-    setAnimating(true)
-    setTimeout(() => {
-      setActiveIdx(idx)
-      setAnimating(false)
-    }, 420)
-  }, [animating, activeIdx])
+  const nextSlide = useCallback(() => {
+    if (items.length < 2) return
+    setDirection('next')
+    setActiveIdx(prev => (prev + 1) % items.length)
+    setSlideKey(k => k + 1)
+  }, [items.length])
 
-  const next = useCallback(() => {
-    goTo((activeIdx + 1) % items.length, 'next')
-  }, [activeIdx, items.length, goTo])
+  const prevSlide = useCallback(() => {
+    if (items.length < 2) return
+    setDirection('prev')
+    setActiveIdx(prev => (prev - 1 + items.length) % items.length)
+    setSlideKey(k => k + 1)
+  }, [items.length])
 
-  const prev = useCallback(() => {
-    goTo((activeIdx - 1 + items.length) % items.length, 'prev')
-  }, [activeIdx, items.length, goTo])
+  const goToSlide = useCallback((idx) => {
+    if (idx === activeIdx || items.length < 2) return
+    setDirection(idx > activeIdx ? 'next' : 'prev')
+    setActiveIdx(idx)
+    setSlideKey(k => k + 1)
+  }, [activeIdx, items.length])
 
-  // Auto-advance
+  // Exact 5 seconds per slide timer
   useEffect(() => {
-    if (items.length < 2) return
-    timerRef.current = setInterval(next, INTERVAL)
-    return () => clearInterval(timerRef.current)
-  }, [next, items.length])
+    if (items.length < 2 || isPaused) return
 
-  // Pause on hover
-  const pause = () => clearInterval(timerRef.current)
-  const resume = () => {
-    if (items.length < 2) return
-    timerRef.current = setInterval(next, INTERVAL)
-  }
+    const timer = setTimeout(() => {
+      nextSlide()
+    }, INTERVAL)
+
+    return () => clearTimeout(timer)
+  }, [items.length, isPaused, slideKey, nextSlide])
 
   if (!items.length) return null
 
@@ -83,14 +82,14 @@ export default function Spotlight({ items = [] }) {
 
   return (
     <div
-      className={`spotlight spotlight-${direction} ${animating ? 'spotlight-animating' : ''}`}
-      onMouseEnter={pause}
-      onMouseLeave={resume}
+      className={`spotlight spotlight-${direction} ${isPaused ? 'is-paused' : ''}`}
+      onMouseEnter={() => setIsPaused(true)}
+      onMouseLeave={() => setIsPaused(false)}
     >
-      {/* Background */}
+      {/* Background image */}
       {backdrop && (
         <img
-          key={`bg-${item.id}`}
+          key={`bg-${item.id}-${slideKey}`}
           className="spotlight-bg"
           src={backdrop}
           alt=""
@@ -99,7 +98,7 @@ export default function Spotlight({ items = [] }) {
       )}
       <div className="spotlight-overlay" />
 
-      <div className="container spotlight-container">
+      <div className="container spotlight-container" key={`content-${item.id}-${slideKey}`}>
         {/* Poster thumbnail */}
         {poster && (
           <div className="spotlight-poster">
@@ -149,7 +148,7 @@ export default function Spotlight({ items = [] }) {
             <button
               key={i}
               className={`spotlight-dot ${i === activeIdx ? 'active' : ''}`}
-              onClick={() => goTo(i, i > activeIdx ? 'next' : 'prev')}
+              onClick={() => goToSlide(i)}
               aria-label={`Slide ${i + 1}`}
             />
           ))}
@@ -159,18 +158,18 @@ export default function Spotlight({ items = [] }) {
       {/* Arrow buttons */}
       {items.length > 1 && (
         <>
-          <button className="spotlight-arrow spotlight-arrow-prev" onClick={prev} aria-label="Previous">
+          <button className="spotlight-arrow spotlight-arrow-prev" onClick={prevSlide} aria-label="Previous">
             ‹
           </button>
-          <button className="spotlight-arrow spotlight-arrow-next" onClick={next} aria-label="Next">
+          <button className="spotlight-arrow spotlight-arrow-next" onClick={nextSlide} aria-label="Next">
             ›
           </button>
         </>
       )}
 
-      {/* Progress bar */}
+      {/* Exact 5s Progress bar */}
       {items.length > 1 && (
-        <div key={`progress-${activeIdx}`} className="spotlight-progress" />
+        <div key={`progress-${slideKey}`} className="spotlight-progress" />
       )}
     </div>
   )
