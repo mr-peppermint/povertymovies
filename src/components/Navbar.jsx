@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { NavLink, Link, useNavigate } from 'react-router-dom'
 import { useWatchLater } from '../hooks/useWatchLater'
+import LogoIcon from './LogoIcon'
 
 export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false)
@@ -11,7 +12,8 @@ export default function Navbar() {
     <nav className="navbar">
       <div className="container">
         <Link to="/" className="navbar-brand" onClick={() => setMenuOpen(false)}>
-          Poverty<span>Movies</span>
+          <LogoIcon size={28} />
+          <span>Poverty<span className="brand-highlight">Movies</span></span>
         </Link>
 
         <ul className="navbar-nav">

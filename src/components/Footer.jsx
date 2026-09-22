@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom'
+import LogoIcon from './LogoIcon'
 
 export default function Footer() {
   return (
@@ -6,7 +7,10 @@ export default function Footer() {
       <div className="container">
         <div className="footer-inner">
           <div>
-            <div className="footer-brand">Poverty<span>Movies</span></div>
+            <div className="footer-brand">
+              <LogoIcon size={24} />
+              <span>Poverty<span className="brand-highlight">Movies</span></span>
+            </div>
             <p className="footer-tagline">Lights out, popcorn up.</p>
           </div>
 

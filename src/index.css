@@ -107,15 +107,18 @@ input {
 }
 
 .navbar-brand {
-  font-size: 1.4rem;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 1.35rem;
   font-weight: 800;
   letter-spacing: -0.5px;
-  color: var(--accent);
+  color: var(--text-primary);
   white-space: nowrap;
 }
 
-.navbar-brand span {
-  color: var(--text-primary);
+.brand-highlight {
+  color: var(--accent);
 }
 
 .navbar-nav {
@@ -1149,12 +1152,11 @@ input {
 }
 
 .footer-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
   font-size: 1.3rem;
   font-weight: 800;
-  color: var(--accent);
-}
-
-.footer-brand span {
   color: var(--text-primary);
 }
 
