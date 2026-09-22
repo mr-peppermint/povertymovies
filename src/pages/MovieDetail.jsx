@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { getDetails, getVidSrcMovie, IMG_ORIGINAL, IMG_W500 } from '../api/tmdb'
 import VideoPlayer from '../components/VideoPlayer'
+import { useWatchLater } from '../hooks/useWatchLater'
 
 export default function MovieDetail() {
   const { id } = useParams()
@@ -9,6 +10,7 @@ export default function MovieDetail() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [showPlayer, setShowPlayer] = useState(false)
+  const { toggle, isSaved } = useWatchLater()
 
   useEffect(() => {
     setShowPlayer(false)
@@ -78,7 +80,13 @@ export default function MovieDetail() {
               <h1 className="detail-title">{movie.title}</h1>
 
               <div className="detail-meta">
-                <span className="rating">★ {rating}</span>
+                <span className="detail-rating-score">
+                  ★ <strong>{rating}</strong>
+                  <span className="detail-rating-max">/10</span>
+                  {movie.vote_count > 0 && (
+                    <span className="detail-vote-count">({movie.vote_count.toLocaleString()} votes)</span>
+                  )}
+                </span>
                 {year && <span>{year}</span>}
                 {runtime && <span>{runtime}</span>}
                 {movie.status && <span>{movie.status}</span>}
@@ -98,7 +106,13 @@ export default function MovieDetail() {
                     <span>✕ Close Player</span>
                   </button>
                 )}
-                <Link to="/movies" className="btn btn-outline">
+                <button
+                  className={`btn ${isSaved(movie.id) ? 'btn-primary' : 'btn-outline'}`}
+                  onClick={() => toggle({ ...movie, media_type: 'movie' })}
+                >
+                  <span>{isSaved(movie.id) ? '🔖 Saved' : '+ Watch Later'}</span>
+                </button>
+                <Link to="/movies" className="btn btn-ghost">
                   <span>← Back</span>
                 </Link>
               </div>

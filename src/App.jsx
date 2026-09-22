@@ -7,6 +7,7 @@ import TVShows from './pages/TVShows'
 import Search from './pages/Search'
 import MovieDetail from './pages/MovieDetail'
 import TVDetail from './pages/TVDetail'
+import WatchLater from './pages/WatchLater'
 
 export default function App() {
   return (
@@ -19,6 +20,7 @@ export default function App() {
             <Route path="/movies" element={<Movies />} />
             <Route path="/tv" element={<TVShows />} />
             <Route path="/search" element={<Search />} />
+            <Route path="/watch-later" element={<WatchLater />} />
             <Route path="/movie/:id" element={<MovieDetail />} />
             <Route path="/tv/:id" element={<TVDetail />} />
           </Routes>

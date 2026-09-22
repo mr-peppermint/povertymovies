@@ -1124,3 +1124,379 @@ input {
     gap: 10px;
   }
 }
+
+/* ============================================
+   MOVIE CARD — OVERLAY ICONS
+   ============================================ */
+
+/* Rating pill — top LEFT of poster */
+.card-rating-pill {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  z-index: 3;
+  padding: 3px 8px;
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(4px);
+  border-radius: var(--radius);
+  font-size: 0.72rem;
+  font-weight: 700;
+  line-height: 1;
+  pointer-events: none;
+  border: 1px solid rgba(255,255,255,0.08);
+}
+
+/* Save / Watch Later button — top RIGHT of poster */
+.card-wl-btn {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 3;
+  width: 30px;
+  height: 30px;
+  border-radius: var(--radius);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.72);
+  backdrop-filter: blur(4px);
+  border: 1px solid rgba(255,255,255,0.1);
+  color: var(--text-secondary);
+  opacity: 0;               /* hidden by default, shown on card hover */
+  transform: translateY(-4px);
+  transition: opacity 0.18s ease, transform 0.18s ease,
+              background 0.18s ease, color 0.18s ease, border-color 0.18s ease;
+  cursor: pointer;
+}
+
+/* Always show when already saved */
+.card-wl-btn.card-wl-saved {
+  opacity: 1;
+  transform: translateY(0);
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+
+/* Reveal on card hover */
+.movie-card:hover .card-wl-btn {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.card-wl-btn:hover:not(.card-wl-saved) {
+  background: rgba(229, 9, 20, 0.85);
+  border-color: var(--accent);
+  color: #fff;
+}
+
+/* ============================================
+   NAVBAR BADGE
+   ============================================ */
+.nav-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  margin-left: 5px;
+  background: var(--accent);
+  color: #fff;
+  font-size: 0.65rem;
+  font-weight: 700;
+  border-radius: 9px;
+  vertical-align: middle;
+  line-height: 1;
+}
+
+.watch-later-link {
+  display: inline-flex;
+  align-items: center;
+}
+
+/* ============================================
+   DETAIL PAGE — ENHANCED RATINGS
+   ============================================ */
+.detail-rating-score {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 1.1rem;
+  color: #f5c518;
+  font-weight: 600;
+}
+
+.detail-rating-score strong {
+  font-size: 1.4rem;
+  font-weight: 800;
+}
+
+.detail-rating-max {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  font-weight: 400;
+}
+
+.detail-vote-count {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  font-weight: 400;
+  margin-left: 2px;
+}
+
+/* ============================================
+   SPOTLIGHT CAROUSEL
+   ============================================ */
+.spotlight {
+  position: relative;
+  height: 560px;
+  display: flex;
+  align-items: flex-end;
+  overflow: hidden;
+  background: #050505;
+}
+
+.spotlight-loading {
+  align-items: center;
+  justify-content: center;
+}
+
+/* Background image */
+.spotlight-bg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center top;
+  opacity: 0.45;
+}
+
+/* Gradient overlay */
+.spotlight-overlay {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(to right, rgba(5,5,5,0.95) 0%, rgba(5,5,5,0.55) 55%, rgba(5,5,5,0.1) 100%),
+    linear-gradient(to top, rgba(5,5,5,1) 0%, rgba(5,5,5,0) 45%);
+}
+
+/* Slide-in animations */
+.spotlight-bg,
+.spotlight-content,
+.spotlight-poster {
+  animation: spotlightFadeIn 0.45s ease forwards;
+}
+
+@keyframes spotlightFadeIn {
+  from { opacity: 0; transform: translateX(22px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+.spotlight.spotlight-prev .spotlight-bg,
+.spotlight.spotlight-prev .spotlight-content,
+.spotlight.spotlight-prev .spotlight-poster {
+  animation: spotlightFadeInPrev 0.45s ease forwards;
+}
+
+@keyframes spotlightFadeInPrev {
+  from { opacity: 0; transform: translateX(-22px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+/* During transition — fade content out */
+.spotlight.spotlight-animating .spotlight-content,
+.spotlight.spotlight-animating .spotlight-poster,
+.spotlight.spotlight-animating .spotlight-bg {
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+/* Inner layout */
+.spotlight-container {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: flex-end;
+  gap: 36px;
+  width: 100%;
+  padding-bottom: 56px;
+}
+
+/* Poster thumbnail */
+.spotlight-poster {
+  flex-shrink: 0;
+  width: 160px;
+  border-radius: var(--radius);
+  overflow: hidden;
+  border: 2px solid rgba(255,255,255,0.12);
+  box-shadow: 0 12px 40px rgba(0,0,0,0.7);
+  display: none;
+}
+
+@media (min-width: 640px) {
+  .spotlight-poster {
+    display: block;
+  }
+}
+
+.spotlight-poster img {
+  width: 100%;
+  aspect-ratio: 2/3;
+  object-fit: cover;
+  display: block;
+}
+
+/* Text content */
+.spotlight-content {
+  flex: 1;
+  max-width: 620px;
+  min-width: 0;
+}
+
+.spotlight-badges {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+
+.spotlight-year {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.spotlight-title {
+  font-size: clamp(1.6rem, 3.5vw, 2.6rem);
+  margin-bottom: 10px;
+}
+
+/* Star ratings inside spotlight */
+.spotlight-stars {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  margin-bottom: 12px;
+}
+
+.star {
+  font-size: 1rem;
+  line-height: 1;
+}
+
+.star-full  { color: #f5c518; }
+.star-half  { color: #f5c518; }
+.star-empty { color: #555; }
+
+.star-score {
+  margin-left: 6px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #f5c518;
+}
+
+.star-count {
+  margin-left: 4px;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+/* Save button in spotlight */
+.spotlight-save-btn.saved {
+  background: var(--accent) !important;
+  border-color: var(--accent) !important;
+  color: #fff !important;
+}
+
+/* Dot indicators */
+.spotlight-dots {
+  position: absolute;
+  bottom: 18px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 6px;
+  z-index: 4;
+}
+
+.spotlight-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 4px;
+  background: rgba(255,255,255,0.3);
+  border: none;
+  cursor: pointer;
+  transition: background 0.2s ease, width 0.25s ease;
+}
+
+.spotlight-dot.active {
+  background: var(--accent);
+  width: 24px;
+}
+
+/* Arrow buttons */
+.spotlight-arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 4;
+  width: 42px;
+  height: 42px;
+  border-radius: var(--radius);
+  background: rgba(0,0,0,0.55);
+  backdrop-filter: blur(6px);
+  border: 1px solid rgba(255,255,255,0.1);
+  color: #fff;
+  font-size: 1.6rem;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.spotlight-arrow:hover {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+.spotlight-arrow-prev { left: 16px; }
+.spotlight-arrow-next { right: 16px; }
+
+/* Progress bar — animates over 5s, resets on new slide */
+.spotlight-progress {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 3px;
+  background: var(--accent);
+  z-index: 5;
+  animation: spotlightProgress 5s linear forwards;
+}
+
+@keyframes spotlightProgress {
+  from { width: 0%; }
+  to   { width: 100%; }
+}
+
+/* Mobile adjustments */
+@media (max-width: 767px) {
+  .spotlight {
+    height: 420px;
+  }
+
+  .spotlight-container {
+    padding-bottom: 44px;
+  }
+
+  .spotlight-arrow {
+    width: 34px;
+    height: 34px;
+    font-size: 1.3rem;
+  }
+}
+

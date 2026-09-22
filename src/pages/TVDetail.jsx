@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { getDetails, getSeasonDetails, getVidSrcTV, IMG_ORIGINAL, IMG_W500 } from '../api/tmdb'
 import VideoPlayer from '../components/VideoPlayer'
+import { useWatchLater } from '../hooks/useWatchLater'
 
 export default function TVDetail() {
   const { id } = useParams()
@@ -14,6 +15,7 @@ export default function TVDetail() {
   const [selectedEp, setSelectedEp] = useState(1)
   const [epLoading, setEpLoading] = useState(false)
   const [showPlayer, setShowPlayer] = useState(false)
+  const { toggle, isSaved } = useWatchLater()
 
   useEffect(() => {
     setShowPlayer(false)
@@ -97,7 +99,13 @@ export default function TVDetail() {
               <h1 className="detail-title">{show.name}</h1>
 
               <div className="detail-meta">
-                <span className="rating">★ {rating}</span>
+                <span className="detail-rating-score">
+                  ★ <strong>{rating}</strong>
+                  <span className="detail-rating-max">/10</span>
+                  {show.vote_count > 0 && (
+                    <span className="detail-vote-count">({show.vote_count.toLocaleString()} votes)</span>
+                  )}
+                </span>
                 {year && <span>{year}</span>}
                 {show.number_of_seasons && (
                   <span>{show.number_of_seasons} Season{show.number_of_seasons > 1 ? 's' : ''}</span>
@@ -119,7 +127,13 @@ export default function TVDetail() {
                     <span>✕ Close Player</span>
                   </button>
                 )}
-                <Link to="/tv" className="btn btn-outline">
+                <button
+                  className={`btn ${isSaved(show.id) ? 'btn-primary' : 'btn-outline'}`}
+                  onClick={() => toggle({ ...show, media_type: 'tv' })}
+                >
+                  <span>{isSaved(show.id) ? '🔖 Saved' : '+ Watch Later'}</span>
+                </button>
+                <Link to="/tv" className="btn btn-ghost">
                   <span>← Back</span>
                 </Link>
               </div>
