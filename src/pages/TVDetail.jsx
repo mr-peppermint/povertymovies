@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react'
-import { useParams, Link } from 'react-router-dom'
+import { useState, useEffect, useRef } from 'react'
+import { useParams, useSearchParams, Link } from 'react-router-dom'
 import { getDetails, getSeasonDetails, getVidSrcTV, IMG_ORIGINAL, IMG_W500 } from '../api/tmdb'
 import VideoPlayer from '../components/VideoPlayer'
 import CastList from '../components/CastList'
@@ -7,6 +7,9 @@ import { useWatchLater } from '../hooks/useWatchLater'
 
 export default function TVDetail() {
   const { id } = useParams()
+  const [searchParams] = useSearchParams()
+  const autoPlay = searchParams.get('play') === 'true'
+
   const [show, setShow] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -15,11 +18,12 @@ export default function TVDetail() {
   const [episodes, setEpisodes] = useState([])
   const [selectedEp, setSelectedEp] = useState(1)
   const [epLoading, setEpLoading] = useState(false)
-  const [showPlayer, setShowPlayer] = useState(false)
+  const [showPlayer, setShowPlayer] = useState(autoPlay)
   const { toggle, isSaved } = useWatchLater()
+  const playerRef = useRef(null)
 
   useEffect(() => {
-    setShowPlayer(false)
+    setShowPlayer(autoPlay)
     setLoading(true)
     setError(null)
 
@@ -29,18 +33,23 @@ export default function TVDetail() {
         const firstSeason = data.seasons?.find(s => s.season_number > 0)?.season_number || 1
         setSelectedSeason(firstSeason)
         setSelectedEp(1)
+        if (autoPlay) {
+          setTimeout(() => {
+            playerRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+          }, 300)
+        }
       })
       .catch(err => setError(err.message))
       .finally(() => setLoading(false))
 
-    window.scrollTo({ top: 0 })
-  }, [id])
+    if (!autoPlay) {
+      window.scrollTo({ top: 0 })
+    }
+  }, [id, autoPlay])
 
   useEffect(() => {
     if (!id) return
     setEpLoading(true)
-    setSelectedEp(1)
-    setShowPlayer(false)
     getSeasonDetails(id, selectedSeason)
       .then(data => setEpisodes(data.episodes || []))
       .catch(() => setEpisodes([]))
@@ -50,7 +59,9 @@ export default function TVDetail() {
   function handlePlayEpisode(epNum) {
     setSelectedEp(epNum)
     setShowPlayer(true)
-    window.scrollTo({ top: 0, behavior: 'smooth' })
+    setTimeout(() => {
+      playerRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    }, 150)
   }
 
   if (loading) return <div className="spinner-wrap" style={{ minHeight: '60vh' }}><div className="spinner" /></div>
@@ -152,14 +163,16 @@ export default function TVDetail() {
 
           {/* Player */}
           {showPlayer && (
-            <VideoPlayer
-              tmdbId={show.id}
-              type="tv"
-              season={selectedSeason}
-              episode={selectedEp}
-              src={getVidSrcTV(show.id, selectedSeason, selectedEp)}
-              title={`${show.name} S${selectedSeason}E${selectedEp}`}
-            />
+            <div ref={playerRef} style={{ scrollMarginTop: '80px' }}>
+              <VideoPlayer
+                tmdbId={show.id}
+                type="tv"
+                season={selectedSeason}
+                episode={selectedEp}
+                src={getVidSrcTV(show.id, selectedSeason, selectedEp)}
+                title={`${show.name} S${selectedSeason}E${selectedEp}`}
+              />
+            </div>
           )}
 
           {/* Episode Picker & Previews */}
@@ -241,7 +254,7 @@ export default function TVDetail() {
                           </p>
 
                           <button
-                            className={`btn ${isSelected ? 'btn-primary' : 'btn-outline'} episode-action-btn`}
+                            className={`btn ${isSelected && showPlayer ? 'btn-primary' : 'btn-outline'} episode-action-btn`}
                             onClick={(e) => {
                               e.stopPropagation()
                               handlePlayEpisode(ep.episode_number)

@@ -75,7 +75,8 @@ export default function Spotlight({ items = [] }) {
   const voteCount = item.vote_count || 0
   const isMovie = item.media_type === 'movie' || !!item.title
   const mediaType = item.media_type || (isMovie ? 'movie' : 'tv')
-  const watchLink = mediaType === 'tv' ? `/tv/${item.id}` : `/movie/${item.id}`
+  const watchLink = mediaType === 'tv' ? `/tv/${item.id}?play=true` : `/movie/${item.id}?play=true`
+  const infoLink = mediaType === 'tv' ? `/tv/${item.id}` : `/movie/${item.id}`
   const backdrop = item.backdrop_path ? `${IMG_ORIGINAL}${item.backdrop_path}` : null
   const poster = item.poster_path ? `${IMG_W500}${item.poster_path}` : null
   const saved = isSaved(item.id)
@@ -127,7 +128,7 @@ export default function Spotlight({ items = [] }) {
             <Link to={watchLink} className="btn btn-primary">
               <span>▶ Watch Now</span>
             </Link>
-            <Link to={watchLink} className="btn btn-outline">
+            <Link to={infoLink} className="btn btn-outline">
               <span>More Info</span>
             </Link>
             <button

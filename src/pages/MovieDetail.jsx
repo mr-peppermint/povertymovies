@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react'
-import { useParams, Link } from 'react-router-dom'
+import { useState, useEffect, useRef } from 'react'
+import { useParams, useSearchParams, Link } from 'react-router-dom'
 import { getDetails, getVidSrcMovie, IMG_ORIGINAL, IMG_W500 } from '../api/tmdb'
 import VideoPlayer from '../components/VideoPlayer'
 import CastList from '../components/CastList'
@@ -7,24 +7,44 @@ import { useWatchLater } from '../hooks/useWatchLater'
 
 export default function MovieDetail() {
   const { id } = useParams()
+  const [searchParams] = useSearchParams()
+  const autoPlay = searchParams.get('play') === 'true'
+
   const [movie, setMovie] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
-  const [showPlayer, setShowPlayer] = useState(false)
+  const [showPlayer, setShowPlayer] = useState(autoPlay)
   const { toggle, isSaved } = useWatchLater()
+  const playerRef = useRef(null)
 
   useEffect(() => {
-    setShowPlayer(false)
+    setShowPlayer(autoPlay)
     setLoading(true)
     setError(null)
 
     getDetails('movie', id)
-      .then(data => setMovie(data))
+      .then(data => {
+        setMovie(data)
+        if (autoPlay) {
+          setTimeout(() => {
+            playerRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+          }, 300)
+        }
+      })
       .catch(err => setError(err.message))
       .finally(() => setLoading(false))
 
-    window.scrollTo({ top: 0 })
-  }, [id])
+    if (!autoPlay) {
+      window.scrollTo({ top: 0 })
+    }
+  }, [id, autoPlay])
+
+  function handleWatchNow() {
+    setShowPlayer(true)
+    setTimeout(() => {
+      playerRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    }, 150)
+  }
 
   if (loading) return <div className="spinner-wrap" style={{ minHeight: '60vh' }}><div className="spinner" /></div>
   if (error) return (
@@ -99,7 +119,7 @@ export default function MovieDetail() {
 
               <div className="detail-actions">
                 {!showPlayer ? (
-                  <button className="btn btn-primary" onClick={() => setShowPlayer(true)}>
+                  <button className="btn btn-primary" onClick={handleWatchNow}>
                     <span>▶ Watch Now</span>
                   </button>
                 ) : (
@@ -125,12 +145,14 @@ export default function MovieDetail() {
 
           {/* Player */}
           {showPlayer && (
-            <VideoPlayer
-              tmdbId={movie.id}
-              type="movie"
-              src={getVidSrcMovie(movie.id)}
-              title={movie.title}
-            />
+            <div ref={playerRef} style={{ scrollMarginTop: '80px' }}>
+              <VideoPlayer
+                tmdbId={movie.id}
+                type="movie"
+                src={getVidSrcMovie(movie.id)}
+                title={movie.title}
+              />
+            </div>
           )}
         </div>
       </div>
