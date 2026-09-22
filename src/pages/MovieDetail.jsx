@@ -126,6 +126,8 @@ export default function MovieDetail() {
           {/* Player */}
           {showPlayer && (
             <VideoPlayer
+              tmdbId={movie.id}
+              type="movie"
               src={getVidSrcMovie(movie.id)}
               title={movie.title}
             />

@@ -153,6 +153,10 @@ export default function TVDetail() {
           {/* Player */}
           {showPlayer && (
             <VideoPlayer
+              tmdbId={show.id}
+              type="tv"
+              season={selectedSeason}
+              episode={selectedEp}
               src={getVidSrcTV(show.id, selectedSeason, selectedEp)}
               title={`${show.name} S${selectedSeason}E${selectedEp}`}
             />

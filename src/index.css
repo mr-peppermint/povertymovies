@@ -936,15 +936,30 @@ input {
   margin: 40px 0;
 }
 
-.player-section h2 {
+.player-header-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.player-heading-wrap {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.player-title {
   font-size: 1.1rem;
   font-weight: 700;
-  margin-bottom: 16px;
   padding-left: 14px;
   position: relative;
 }
 
-.player-section h2::before {
+.player-title::before {
   content: '';
   position: absolute;
   left: 0;
@@ -953,6 +968,43 @@ input {
   width: 4px;
   background: var(--accent);
   border-radius: 2px;
+}
+
+.server-tabs {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.server-btn {
+  padding: 4px 10px;
+  font-size: 0.74rem;
+  font-weight: 600;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all var(--transition);
+}
+
+.server-btn:hover {
+  border-color: var(--accent);
+  color: #fff;
+}
+
+.server-btn.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+
+.player-fullscreen-toggle {
+  padding: 6px 14px;
+  font-size: 0.78rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
 }
 
 .player-wrapper {
@@ -965,12 +1017,32 @@ input {
   border: 1px solid var(--border);
 }
 
+/* Fullscreen support on container */
+.player-wrapper:fullscreen,
+.player-wrapper:-webkit-full-screen,
+.player-wrapper:-moz-full-screen,
+.player-wrapper:-ms-fullscreen {
+  width: 100vw !important;
+  height: 100vh !important;
+  aspect-ratio: unset !important;
+  border-radius: 0 !important;
+  border: none !important;
+  background: #000 !important;
+}
+
 .player-wrapper iframe {
   position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
   border: none;
+}
+
+.player-help-text {
+  margin-top: 10px;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  line-height: 1.6;
 }
 
 /* Episode Picker */
