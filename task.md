@@ -1,0 +1,21 @@
+# PovertyMovies Build Tasks
+
+- [x] package.json
+- [x] vite.config.js
+- [x] index.html
+- [x] .env.example
+- [x] src/main.jsx
+- [x] src/App.jsx
+- [x] src/index.css
+- [x] src/api/tmdb.js
+- [x] src/components/Navbar.jsx
+- [x] src/components/MovieCard.jsx
+- [x] src/components/VideoPlayer.jsx
+- [x] src/components/EpisodePicker.jsx
+- [x] src/components/MediaGrid.jsx
+- [x] src/pages/Home.jsx
+- [x] src/pages/MovieDetail.jsx
+- [x] src/pages/TVDetail.jsx
+- [x] src/pages/Search.jsx
+- [ ] npm install
+- [ ] verify dev server starts
