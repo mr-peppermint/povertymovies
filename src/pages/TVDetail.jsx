@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { getDetails, getSeasonDetails, getVidSrcTV, IMG_ORIGINAL, IMG_W500 } from '../api/tmdb'
 import VideoPlayer from '../components/VideoPlayer'
+import CastList from '../components/CastList'
 import { useWatchLater } from '../hooks/useWatchLater'
 
 export default function TVDetail() {
@@ -45,6 +46,12 @@ export default function TVDetail() {
       .catch(() => setEpisodes([]))
       .finally(() => setEpLoading(false))
   }, [id, selectedSeason])
+
+  function handlePlayEpisode(epNum) {
+    setSelectedEp(epNum)
+    setShowPlayer(true)
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
 
   if (loading) return <div className="spinner-wrap" style={{ minHeight: '60vh' }}><div className="spinner" /></div>
   if (error) return (
@@ -119,7 +126,7 @@ export default function TVDetail() {
 
               <div className="detail-actions">
                 {!showPlayer ? (
-                  <button className="btn btn-primary" onClick={() => setShowPlayer(true)}>
+                  <button className="btn btn-primary" onClick={() => handlePlayEpisode(selectedEp)}>
                     <span>▶ Watch S{selectedSeason}E{selectedEp}</span>
                   </button>
                 ) : (
@@ -137,6 +144,9 @@ export default function TVDetail() {
                   <span>← Back</span>
                 </Link>
               </div>
+
+              {/* Cast List under briefing & actions */}
+              <CastList cast={show.credits?.cast} />
             </div>
           </div>
 
@@ -148,10 +158,12 @@ export default function TVDetail() {
             />
           )}
 
-          {/* Episode Picker */}
+          {/* Episode Picker & Previews */}
           {seasons.length > 0 && (
             <div className="episode-picker">
-              <h3>Select Season & Episode</h3>
+              <div className="section-header" style={{ marginBottom: '16px' }}>
+                <h2 className="section-title">Episodes</h2>
+              </div>
 
               {/* Season tabs */}
               <div className="season-tabs">
@@ -161,36 +173,86 @@ export default function TVDetail() {
                     className={`filter-btn ${selectedSeason === s.season_number ? 'active' : ''}`}
                     onClick={() => setSelectedSeason(s.season_number)}
                   >
-                    S{s.season_number}
+                    Season {s.season_number}
                   </button>
                 ))}
               </div>
 
-              {/* Episodes */}
+              {/* Episodes List with Previews, Names & Briefings */}
               {epLoading ? (
-                <div className="spinner-wrap" style={{ minHeight: '80px' }}>
+                <div className="spinner-wrap" style={{ minHeight: '120px' }}>
                   <div className="spinner" />
                 </div>
               ) : (
-                <div className="episode-grid">
-                  {episodes.map(ep => (
-                    <button
-                      key={ep.episode_number}
-                      className={`ep-btn ${selectedEp === ep.episode_number ? 'active' : ''}`}
-                      onClick={() => {
-                        setSelectedEp(ep.episode_number)
-                        setShowPlayer(true)
-                        window.scrollTo({ top: 0, behavior: 'smooth' })
-                      }}
-                      title={ep.name}
-                    >
-                      {ep.episode_number}
-                    </button>
-                  ))}
+                <div className="episodes-list">
+                  {episodes.map(ep => {
+                    const stillUrl = ep.still_path ? `${IMG_W500}${ep.still_path}` : null
+                    const isSelected = selectedEp === ep.episode_number
+                    const epRating = ep.vote_average ? ep.vote_average.toFixed(1) : null
+
+                    return (
+                      <div
+                        key={ep.id || ep.episode_number}
+                        className={`episode-card ${isSelected ? 'active' : ''}`}
+                        onClick={() => handlePlayEpisode(ep.episode_number)}
+                      >
+                        {/* Episode Preview Thumbnail */}
+                        <div className="episode-thumbnail">
+                          {stillUrl ? (
+                            <img src={stillUrl} alt={ep.name} loading="lazy" />
+                          ) : (
+                            <div className="episode-thumbnail-placeholder">
+                              <span>S{selectedSeason} E{ep.episode_number}</span>
+                            </div>
+                          )}
+                          <div className="episode-play-overlay">
+                            <div className="episode-play-btn">
+                              <svg viewBox="0 0 24 24" width="16" height="16" fill="#fff">
+                                <polygon points="5,3 19,12 5,21" />
+                              </svg>
+                            </div>
+                          </div>
+                          {epRating && (
+                            <div className="episode-rating-pill">
+                              ★ {epRating}
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Episode Details */}
+                        <div className="episode-details">
+                          <div className="episode-header">
+                            <h4 className="episode-name">
+                              <span className="episode-num">{ep.episode_number}.</span> {ep.name || `Episode ${ep.episode_number}`}
+                            </h4>
+                            <div className="episode-meta">
+                              {ep.runtime && <span>{ep.runtime}m</span>}
+                              {ep.air_date && <span>{ep.air_date}</span>}
+                            </div>
+                          </div>
+
+                          {/* Episode Briefing / Overview */}
+                          <p className="episode-overview">
+                            {ep.overview || 'No description available for this episode.'}
+                          </p>
+
+                          <button
+                            className={`btn ${isSelected ? 'btn-primary' : 'btn-outline'} episode-action-btn`}
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              handlePlayEpisode(ep.episode_number)
+                            }}
+                          >
+                            <span>{isSelected && showPlayer ? '▶ Playing Now' : '▶ Play Episode'}</span>
+                          </button>
+                        </div>
+                      </div>
+                    )
+                  })}
                   {episodes.length === 0 && (
-                    <p style={{ color: 'var(--text-muted)', fontSize: '0.8rem', gridColumn: '1/-1' }}>
-                      No episodes found for this season.
-                    </p>
+                    <div className="error-box" style={{ padding: '30px' }}>
+                      <p>No episodes found for this season.</p>
+                    </div>
                   )}
                 </div>
               )}

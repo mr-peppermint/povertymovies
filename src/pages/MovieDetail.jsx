@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { getDetails, getVidSrcMovie, IMG_ORIGINAL, IMG_W500 } from '../api/tmdb'
 import VideoPlayer from '../components/VideoPlayer'
+import CastList from '../components/CastList'
 import { useWatchLater } from '../hooks/useWatchLater'
 
 export default function MovieDetail() {
@@ -116,6 +117,9 @@ export default function MovieDetail() {
                   <span>← Back</span>
                 </Link>
               </div>
+
+              {/* Cast List under briefing & actions */}
+              <CastList cast={movie.credits?.cast} />
             </div>
           </div>
 
