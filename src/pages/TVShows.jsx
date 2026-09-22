@@ -1,12 +1,12 @@
 import { useState, useEffect } from 'react'
-import { getPopular, getTopRated, getGenres, getByGenre } from '../api/tmdb'
+import { getGenres, discoverTitles } from '../api/tmdb'
 import MovieGrid from '../components/MovieGrid'
 
 export default function TVShows() {
   const [items, setItems] = useState([])
   const [page, setPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
-  const [filter, setFilter] = useState('popular')   // 'popular' | 'top_rated' | genre id (number)
+  const [selectedTags, setSelectedTags] = useState(['popular']) // can contain 'popular', 'top_rated', and any genre IDs
   const [genres, setGenres] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -18,20 +18,24 @@ export default function TVShows() {
       .catch(() => {})
   }, [])
 
-  // Fetch shows whenever filter or page changes
+  // Fetch shows whenever selectedTags or page changes
   useEffect(() => {
     async function load() {
       setLoading(true)
       setError(null)
       try {
-        let data
-        if (filter === 'popular') {
-          data = await getPopular('tv', page)
-        } else if (filter === 'top_rated') {
-          data = await getTopRated('tv', page)
-        } else {
-          data = await getByGenre('tv', filter, page)
-        }
+        const genreIds = selectedTags.filter(t => typeof t === 'number')
+        const isPopular = selectedTags.includes('popular')
+        const isTopRated = selectedTags.includes('top_rated')
+
+        const data = await discoverTitles({
+          type: 'tv',
+          genreIds,
+          isPopular,
+          isTopRated,
+          page
+        })
+
         setItems(data.results || [])
         setTotalPages(Math.min(data.total_pages || 1, 500))
       } catch (err) {
@@ -42,56 +46,74 @@ export default function TVShows() {
     }
     load()
     window.scrollTo({ top: 0, behavior: 'smooth' })
-  }, [page, filter])
+  }, [page, selectedTags])
 
-  function setFilterAndReset(value) {
-    setFilter(value)
+  function toggleTag(tagKey) {
+    setSelectedTags(prev =>
+      prev.includes(tagKey)
+        ? prev.filter(k => k !== tagKey)
+        : [...prev, tagKey]
+    )
     setPage(1)
   }
 
-  function changePage(next) {
-    setPage(p => Math.max(1, Math.min(totalPages, p + next)))
+  function clearAll() {
+    setSelectedTags(['popular'])
+    setPage(1)
   }
 
-  const activeGenreName = genres.find(g => g.id === filter)?.name
+  // Generate subtitle from selected tags
+  const activeNames = selectedTags.map(tag => {
+    if (tag === 'popular') return 'Popular'
+    if (tag === 'top_rated') return 'Top Rated'
+    return genres.find(g => g.id === tag)?.name
+  }).filter(Boolean)
+
+  const subtitle = activeNames.length > 0
+    ? `Browsing: ${activeNames.join(' + ')}`
+    : 'Browse series and shows'
 
   return (
     <div className="container">
       <div className="page-header">
-        <h1>TV Shows</h1>
-        <p>{activeGenreName ? `Browsing: ${activeGenreName}` : 'Browse series and shows'}</p>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px' }}>
+          <div>
+            <h1>TV Shows</h1>
+            <p>{subtitle}</p>
+          </div>
+          {selectedTags.length > 0 && !(selectedTags.length === 1 && selectedTags[0] === 'popular') && (
+            <button className="btn btn-outline" style={{ padding: '6px 12px', fontSize: '0.78rem' }} onClick={clearAll}>
+              <span>✕ Reset Filters</span>
+            </button>
+          )}
+        </div>
       </div>
 
-      {/* Sort filters */}
-      <div className="filter-bar" style={{ marginBottom: '10px' }}>
+      {/* Merged Filter & Multi-Genre strip with zero exceptions */}
+      <div className="genre-strip">
         <button
-          className={`filter-btn ${filter === 'popular' ? 'active' : ''}`}
-          onClick={() => setFilterAndReset('popular')}
+          className={`genre-pill ${selectedTags.includes('popular') ? 'active' : ''}`}
+          onClick={() => toggleTag('popular')}
         >
           Popular
         </button>
         <button
-          className={`filter-btn ${filter === 'top_rated' ? 'active' : ''}`}
-          onClick={() => setFilterAndReset('top_rated')}
+          className={`genre-pill ${selectedTags.includes('top_rated') ? 'active' : ''}`}
+          onClick={() => toggleTag('top_rated')}
         >
           Top Rated
         </button>
-      </div>
 
-      {/* Genre strip */}
-      {genres.length > 0 && (
-        <div className="genre-strip">
-          {genres.map(g => (
-            <button
-              key={g.id}
-              className={`genre-pill ${filter === g.id ? 'active' : ''}`}
-              onClick={() => setFilterAndReset(g.id)}
-            >
-              {g.name}
-            </button>
-          ))}
-        </div>
-      )}
+        {genres.map(g => (
+          <button
+            key={g.id}
+            className={`genre-pill ${selectedTags.includes(g.id) ? 'active' : ''}`}
+            onClick={() => toggleTag(g.id)}
+          >
+            {g.name}
+          </button>
+        ))}
+      </div>
 
       {error && (
         <div className="error-box">
@@ -109,9 +131,9 @@ export default function TVShows() {
       {!loading && !error && (
         <div className="pagination">
           <button className="page-btn" onClick={() => setPage(1)} disabled={page === 1}>«</button>
-          <button className="page-btn" onClick={() => changePage(-1)} disabled={page === 1}>‹</button>
+          <button className="page-btn" onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1}>‹</button>
           <span className="page-btn active">{page}</span>
-          <button className="page-btn" onClick={() => changePage(1)} disabled={page === totalPages}>›</button>
+          <button className="page-btn" onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page === totalPages}>›</button>
           <button className="page-btn" onClick={() => setPage(totalPages)} disabled={page === totalPages}>»</button>
         </div>
       )}

@@ -43,9 +43,47 @@ export const getSeasonDetails = (showId, season) =>
 export const getGenres = (type = 'movie') =>
   fetchTMDB(`/genre/${type}/list`)
 
-// Discover by genre ID
-export const getByGenre = (type = 'movie', genreId, page = 1) =>
-  fetchTMDB(`/discover/${type}`, { with_genres: genreId, sort_by: 'popularity.desc', page })
+// Discover with multi-filters (any combination of genres, popular, top_rated)
+export const discoverTitles = ({
+  type = 'movie',
+  genreIds = [],
+  isTopRated = false,
+  isPopular = false,
+  page = 1
+}) => {
+  const params = { page }
+
+  if (genreIds.length > 0) {
+    params.with_genres = genreIds.join(',')
+  }
+
+  if (isTopRated && !isPopular) {
+    params.sort_by = 'vote_average.desc'
+    params['vote_count.gte'] = 150
+  } else if (isTopRated && isPopular) {
+    params.sort_by = 'popularity.desc'
+    params['vote_average.gte'] = 7.0
+    params['vote_count.gte'] = 100
+  } else {
+    params.sort_by = 'popularity.desc'
+  }
+
+  return fetchTMDB(`/discover/${type}`, params)
+}
+
+// Discover by genre IDs (array or comma string)
+export const getByGenre = (type = 'movie', genreIds, page = 1, sortBy = 'popularity.desc') => {
+  const genreParam = Array.isArray(genreIds) ? genreIds.join(',') : genreIds
+  const params = {
+    with_genres: genreParam,
+    sort_by: sortBy,
+    page
+  }
+  if (sortBy === 'vote_average.desc') {
+    params['vote_count.gte'] = 100
+  }
+  return fetchTMDB(`/discover/${type}`, params)
+}
 
 // VidSrc embed URLs
 export const getVidSrcMovie = (tmdbId) =>
