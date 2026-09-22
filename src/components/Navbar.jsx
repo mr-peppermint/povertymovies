@@ -46,6 +46,8 @@ export default function Navbar() {
         {/* Nav links */}
         <nav className={styles.nav}>
           <Link to="/" className={styles.navLink}>Home</Link>
+          <Link to="/movies" className={styles.navLink}>Movies</Link>
+          <Link to="/tvshows" className={styles.navLink}>TV Shows</Link>
         </nav>
 
         {/* Search */}

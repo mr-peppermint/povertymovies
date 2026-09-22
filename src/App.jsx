@@ -4,6 +4,7 @@ import Home from './pages/Home'
 import MovieDetail from './pages/MovieDetail'
 import TVDetail from './pages/TVDetail'
 import Search from './pages/Search'
+import Browse from './pages/Browse'
 import './App.css'
 
 export default function App() {
@@ -13,6 +14,8 @@ export default function App() {
       <main className="main-content">
         <Routes>
           <Route path="/" element={<Home />} />
+          <Route path="/movies" element={<Browse mediaType="movie" />} />
+          <Route path="/tvshows" element={<Browse mediaType="tv" />} />
           <Route path="/movie/:id" element={<MovieDetail />} />
           <Route path="/tv/:id" element={<TVDetail />} />
           <Route path="/search" element={<Search />} />

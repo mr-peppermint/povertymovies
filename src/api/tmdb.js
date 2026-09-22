@@ -41,6 +41,29 @@ export const searchMulti = async (query, page = 1) => {
   return data
 }
 
+// ── Browse: popular ────────────────────────────────────────────────────────
+export const getPopular = async (mediaType = 'movie', page = 1) => {
+  const { data } = await tmdb.get(`/${mediaType}/popular`, {
+    params: { page },
+  })
+  return data
+}
+
+// ── Browse: top rated ─────────────────────────────────────────────────────
+export const getTopRated = async (mediaType = 'movie', page = 1) => {
+  const { data } = await tmdb.get(`/${mediaType}/top_rated`, {
+    params: { page },
+  })
+  return data
+}
+
+// ── Now playing / Airing today ────────────────────────────────────────────
+export const getNowPlaying = async (mediaType = 'movie', page = 1) => {
+  const endpoint = mediaType === 'tv' ? '/tv/airing_today' : '/movie/now_playing'
+  const { data } = await tmdb.get(endpoint, { params: { page } })
+  return data
+}
+
 // ── Genre lists ───────────────────────────────────────────────────────────
 export const getGenres = async (mediaType = 'movie') => {
   const { data } = await tmdb.get(`/genre/${mediaType}/list`)

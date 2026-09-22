@@ -37,10 +37,10 @@ export default function VideoPlayer({ mediaType, tmdbId, season, episode }) {
           src={src}
           className={styles.iframe}
           allowFullScreen
-          allow="autoplay; fullscreen; picture-in-picture"
+          allow="autoplay; fullscreen"
           title="Video Player"
-          referrerPolicy="origin"
-          sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
+          referrerPolicy="no-referrer"
+          scrolling="no"
         />
       </div>
     </div>
