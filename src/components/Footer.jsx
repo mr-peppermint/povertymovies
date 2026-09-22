@@ -20,10 +20,10 @@ export default function Footer() {
 
         <div className="footer-bottom">
           <p>
-            This site uses the TMDB API but is not endorsed or certified by TMDB.
-            Video content is embedded from third-party sources for educational and personal use only.
+            This site is only for EDUCATION purposes =) and for people in poverty.
+            Video content is embedded from api sources. More stats are not for you just watch movie and series why u even reding this.
           </p>
-          <p style={{ marginTop: '6px' }}>© {new Date().getFullYear()} PovertyMovies · povertymovies.dpdns.org</p>
+          <p style={{ marginTop: '6px' }}>© {new Date().getFullYear()} PovertyMovies · By yours Dixit =3 </p>
         </div>
       </div>
     </footer>
