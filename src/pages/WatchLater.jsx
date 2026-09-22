@@ -10,7 +10,6 @@ export default function WatchLater() {
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px' }}>
           <div>
             <h1>Watch Later</h1>
-            <p>{saved.length} title{saved.length !== 1 ? 's' : ''} saved</p>
           </div>
           {saved.length > 0 && (
             <button

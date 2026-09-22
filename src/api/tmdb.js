@@ -39,6 +39,14 @@ export const getDetails = (type, id) =>
 export const getSeasonDetails = (showId, season) =>
   fetchTMDB(`/tv/${showId}/season/${season}`)
 
+// Genre list for movies or TV
+export const getGenres = (type = 'movie') =>
+  fetchTMDB(`/genre/${type}/list`)
+
+// Discover by genre ID
+export const getByGenre = (type = 'movie', genreId, page = 1) =>
+  fetchTMDB(`/discover/${type}`, { with_genres: genreId, sort_by: 'popularity.desc', page })
+
 // VidSrc embed URLs
 export const getVidSrcMovie = (tmdbId) =>
   `https://vidsrc.me/embed/movie?tmdb=${tmdbId}`
