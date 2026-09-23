@@ -4,6 +4,7 @@ import { getDetails, getSeasonDetails, getVidSrcTV, IMG_ORIGINAL, IMG_W500 } fro
 import VideoPlayer from '../components/VideoPlayer'
 import CastList from '../components/CastList'
 import { useWatchLater } from '../hooks/useWatchLater'
+import ErrorPage from './ErrorPage'
 
 export default function TVDetail() {
   const { id } = useParams()
@@ -65,17 +66,15 @@ export default function TVDetail() {
   }
 
   if (loading) return <div className="spinner-wrap" style={{ minHeight: '60vh' }}><div className="spinner" /></div>
-  if (error) return (
-    <div className="container">
-      <div className="error-box" style={{ marginTop: '60px' }}>
-        <h2>Couldn't load show</h2>
-        <p>{error}</p>
-        <Link to="/tv" className="btn btn-outline" style={{ marginTop: '16px', display: 'inline-flex' }}>
-          <span>← Back to TV Shows</span>
-        </Link>
-      </div>
-    </div>
-  )
+  if (error) {
+    const is404 = String(error).includes('404')
+    return (
+      <ErrorPage 
+        code={is404 ? '404' : '500'}
+        message="Some error occurred"
+      />
+    )
+  }
   if (!show) return null
 
   const backdrop = show.backdrop_path ? `${IMG_ORIGINAL}${show.backdrop_path}` : null
