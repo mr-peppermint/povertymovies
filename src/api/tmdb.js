@@ -1,3 +1,5 @@
+import { dispatchAppError } from '../context/ErrorContext'
+
 // Replace with your TMDB API key from https://www.themoviedb.org/settings/api
 const API_KEY = import.meta.env.VITE_TMDB_KEY || 'YOUR_TMDB_API_KEY'
 const BASE_URL = 'https://api.themoviedb.org/3'
@@ -10,9 +12,57 @@ async function fetchTMDB(path, params = {}) {
   const url = new URL(`${BASE_URL}${path}`)
   url.searchParams.set('api_key', API_KEY)
   Object.entries(params).forEach(([k, v]) => url.searchParams.set(k, v))
-  const res = await fetch(url.toString())
-  if (!res.ok) throw new Error(`TMDB error: ${res.status}`)
-  return res.json()
+
+  try {
+    const res = await fetch(url.toString())
+    if (!res.ok) {
+      let rawText = ''
+      try {
+        rawText = await res.text()
+      } catch {
+        // ignore
+      }
+
+      let parsed = null
+      try {
+        parsed = JSON.parse(rawText)
+      } catch {
+        // ignore
+      }
+
+      const errorMsg = parsed?.status_message || `TMDB error: ${res.status}`
+      
+      dispatchAppError({
+        type: res.status === 404 ? '404' : 'api',
+        status: res.status,
+        title: res.status === 401 
+          ? 'TMDB API Key Unauthorized (401)' 
+          : res.status === 404 
+            ? 'Media Reel Not Found (404)' 
+            : `API Request Failed (${res.status})`,
+        message: res.status === 401
+          ? 'API key failed to serve movie catalog streaming =('
+          : errorMsg,
+        endpoint: `${path}`,
+        details: rawText || `HTTP Status ${res.status}`
+      })
+
+      throw new Error(errorMsg)
+    }
+    return res.json()
+  } catch (err) {
+    if (err.name === 'TypeError' || err.message?.includes?.('Failed to fetch')) {
+      dispatchAppError({
+        type: 'network',
+        status: 'OFFLINE',
+        title: 'Network Communication Error',
+        message: 'Could not connect to media servers. Please check your internet connection and try again.',
+        endpoint: path,
+        details: err.message
+      })
+    }
+    throw err
+  }
 }
 
 // Trending movies or TV (day/week)

@@ -4,6 +4,7 @@ import { getDetails, getVidSrcMovie, IMG_ORIGINAL, IMG_W500 } from '../api/tmdb'
 import VideoPlayer from '../components/VideoPlayer'
 import CastList from '../components/CastList'
 import { useWatchLater } from '../hooks/useWatchLater'
+import ErrorPage from './ErrorPage'
 
 export default function MovieDetail() {
   const { id } = useParams()
@@ -47,17 +48,15 @@ export default function MovieDetail() {
   }
 
   if (loading) return <div className="spinner-wrap" style={{ minHeight: '60vh' }}><div className="spinner" /></div>
-  if (error) return (
-    <div className="container">
-      <div className="error-box" style={{ marginTop: '60px' }}>
-        <h2>Couldn't load movie</h2>
-        <p>{error}</p>
-        <Link to="/movies" className="btn btn-outline" style={{ marginTop: '16px', display: 'inline-flex' }}>
-          <span>← Back to Movies</span>
-        </Link>
-      </div>
-    </div>
-  )
+  if (error) {
+    const is404 = String(error).includes('404')
+    return (
+      <ErrorPage 
+        code={is404 ? '404' : '500'}
+        message="Some error occurred"
+      />
+    )
+  }
   if (!movie) return null
 
   const backdrop = movie.backdrop_path ? `${IMG_ORIGINAL}${movie.backdrop_path}` : null
