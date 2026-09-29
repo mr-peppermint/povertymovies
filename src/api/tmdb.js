@@ -1,6 +1,6 @@
 import { dispatchAppError } from '../context/ErrorContext'
 
-// Replace with your TMDB API key from https://www.themoviedb.org/settings/api
+// https://www.themoviedb.org/settings/api
 const API_KEY = import.meta.env.VITE_TMDB_KEY || 'YOUR_TMDB_API_KEY'
 const BASE_URL = 'https://api.themoviedb.org/3'
 
@@ -65,15 +65,15 @@ async function fetchTMDB(path, params = {}) {
   }
 }
 
-// Trending movies or TV (day/week)
+// tpending 
 export const getTrending = (type = 'movie', window = 'week', page = 1) =>
   fetchTMDB(`/trending/${type}/${window}`, { page })
 
-// Popular movies or TV
+// popular 
 export const getPopular = (type = 'movie', page = 1) =>
   fetchTMDB(`/${type}/popular`, { page })
 
-// Top rated movies or TV
+// top rated 
 export const getTopRated = (type = 'movie', page = 1) =>
   fetchTMDB(`/${type}/top_rated`, { page })
 
@@ -85,15 +85,15 @@ export const searchMulti = (query, page = 1) =>
 export const getDetails = (type, id) =>
   fetchTMDB(`/${type}/${id}`, { append_to_response: 'credits,videos' })
 
-// Season details (episode list)
+// season details (episode list)
 export const getSeasonDetails = (showId, season) =>
   fetchTMDB(`/tv/${showId}/season/${season}`)
 
-// Genre list for movies or TV
+// genre list for movies or TV
 export const getGenres = (type = 'movie') =>
   fetchTMDB(`/genre/${type}/list`)
 
-// Discover with multi-filters (any combination of genres, popular, top_rated)
+// multi-filters 
 export const discoverTitles = ({
   type = 'movie',
   genreIds = [],
