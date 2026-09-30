@@ -17,10 +17,12 @@ const DEFAULT_DEMO_LEADERBOARD = [
 
 function getWatchTier(seconds) {
   const hours = seconds / 3600
-  if (hours >= 100) return { title: 'Cinema Legend', color: '#ffb703', badge: '👑' }
+  if (hours >= 100) return { title: 'Tuff Legend', color: '#ffb703', badge: '👑' }
   if (hours >= 50) return { title: 'Binge Master', color: '#e50914', badge: '🔥' }
   if (hours >= 20) return { title: 'Film Buff', color: '#a855f7', badge: '🎬' }
+  if (hours >= 10) return { title: 'Cinema Lover', color: '#f97316', badge: '🎥' }
   if (hours >= 5) return { title: 'Casual Watcher', color: '#3b82f6', badge: '🍿' }
+  if (hours >= 1) return { title: 'Movie Enthusiast', color: '#f97316', badge: '🎥' }
   return { title: 'Rookie Streamer', color: '#10b981', badge: '🌱' }
 }
 
