@@ -1,4 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
+import { useWatchTracker } from '../hooks/useWatchTracker'
+import { useAuth } from '../context/AuthContext'
+import { formatWatchTime } from '../api/supabase'
 
 const SERVERS = [
   { id: 'vidsrc_me', name: 'Server 1 (VidSrc)' },
@@ -49,6 +52,9 @@ export default function VideoPlayer({
   const [selectedServer, setSelectedServer] = useState('vidsrc_me')
   const [isFullscreen, setIsFullscreen] = useState(false)
   const playerWrapperRef = useRef(null)
+
+  const { user, profile, openAuthModal } = useAuth()
+  const { sessionSeconds, isTracking, isTabActive } = useWatchTracker(true)
 
   const activeSrc = getEmbedUrl(selectedServer, tmdbId, type, season, episode, src)
 
@@ -141,6 +147,34 @@ export default function VideoPlayer({
         </button>
       </div>
 
+      {/* Live Watch Time Tracker Status Bar */}
+      <div className="player-tracker-banner">
+        {user ? (
+          <div className="tracker-live-info">
+            <span className={`tracker-indicator-dot ${isTracking ? 'pulsing' : 'paused'}`} />
+            <span className="tracker-text">
+              {isTabActive ? (
+                <>
+                  Streaming as <strong>@{profile?.username || user.username}</strong> • Watch Time: <strong>+{formatWatchTime(sessionSeconds)}</strong> this session
+                </>
+              ) : (
+                <>
+                  Tracking paused (switch back to this tab to resume watch time)
+                </>
+              )}
+            </span>
+          </div>
+        ) : (
+          <div className="tracker-guest-info">
+            <span className="guest-sparkle">⏱️</span>
+            <span>Sign in with a username to track your watch time & rank on the Leaderboard!</span>
+            <button className="btn btn-sm btn-primary" onClick={() => openAuthModal('signin')}>
+              Sign In
+            </button>
+          </div>
+        )}
+      </div>
+
       <div className="player-wrapper" ref={playerWrapperRef}>
         <iframe
           key={`${selectedServer}-${season}-${episode}`}
@@ -161,3 +195,4 @@ export default function VideoPlayer({
     </div>
   )
 }
+

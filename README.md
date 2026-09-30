@@ -10,11 +10,24 @@ Requirements: Node.js and npm.
 npm install
 ```
 
-Create a `.env` file in the project root with a TMDB API key:
+Create a `.env` file in the project root:
 
 ```sh
 VITE_TMDB_KEY=your_tmdb_api_key
+
+# Supabase Credentials (for Username Auth & Live Watch Time Leaderboard)
+VITE_SUPABASE_URL=https://your-project.supabase.co
+VITE_SUPABASE_ANON_KEY=your-supabase-anon-key
 ```
+
+### Supabase Database Setup
+
+1. Create a project at [supabase.com](https://supabase.com).
+2. Go to **SQL Editor** in your Supabase dashboard.
+3. Open and run the provided [`supabase-schema.sql`](file:///Users/dex/Documents/GitHub/povertymovies/supabase-schema.sql) file.
+4. Copy your **Project URL** and **anon / public key** from `Settings` -> `API` into your `.env` file.
+
+*Note: If Supabase credentials are not set, the app automatically runs in a local demo mode so all features and leaderboard mechanics can still be tested locally.*
 
 Start the development server at [http://localhost:5173](http://localhost:5173):
 
@@ -26,21 +39,13 @@ To create and preview a production build:
 
 ```sh
 npm run build
-npm run preview
 ```
 
-## Worktree
+## Features
 
-- `src/pages/` — home, movies, TV, search, details, and watch-later pages.
-- `src/components/` — shared page and media UI.
-- `src/api/tmdb.js` — TMDB requests and video embed URL helpers.
-- `src/hooks/` and `src/context/` — watch-later and app error state.
-- `public/` — static assets.
+- **Username Auth**: Pure username & password authentication with customizable avatar picker (powered by Supabase).
+- **Watch Time Tracking**: Automatically tracks time spent watching movies and TV episodes with active tab detection and batch synchronization.
+- **Watch Time Leaderboard**: Real-time podium and ranking table displaying top streamers, cinephile tiers (Cinema Legend, Binge Master, Film Buff, etc.), user progress indicators, and search filter.
+- **Browse & Stream**: Movies, TV series, search, cast lists, and server selection.
+- **Watch Later**: Offline/local bookmarking.
 
-## API
-
-The webpage uses the [TMDB API v3](https://developer.themoviedb.org/docs) at `https://api.themoviedb.org/3`. Set `VITE_TMDB_KEY` in the root `.env`; Vite exposes `VITE_` variables to browser code, so this key is not a server-side secret. Do not commit a real key.
-
-The API helper supports trending, popular, top-rated, search, title details (including credits and videos), TV season details, genres, and discovery/filtering. Images use TMDB's image service (`https://image.tmdb.org/t/p`). Video playback uses third-party VidSrc embed URLs.
-
-TMDB API reference: [developer.themoviedb.org](https://developer.themoviedb.org/docs).
