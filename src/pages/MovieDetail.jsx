@@ -5,6 +5,7 @@ import VideoPlayer from '../components/VideoPlayer'
 import CastList from '../components/CastList'
 import { useWatchLater } from '../hooks/useWatchLater'
 import ErrorPage from './ErrorPage'
+import SimilarRecommendations from '../components/SimilarRecommendations'
 
 export default function MovieDetail() {
   const { id } = useParams()
@@ -153,6 +154,13 @@ export default function MovieDetail() {
               />
             </div>
           )}
+
+          {/* Similar / Recommended Movies */}
+          <SimilarRecommendations
+            type="movie"
+            id={movie.id}
+            genres={movie.genres}
+          />
         </div>
       </div>
     </div>
