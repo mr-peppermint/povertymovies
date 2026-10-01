@@ -5,6 +5,7 @@ import VideoPlayer from '../components/VideoPlayer'
 import CastList from '../components/CastList'
 import { useWatchLater } from '../hooks/useWatchLater'
 import ErrorPage from './ErrorPage'
+import SimilarRecommendations from '../components/SimilarRecommendations'
 
 export default function TVDetail() {
   const { id } = useParams()
@@ -274,6 +275,13 @@ export default function TVDetail() {
               )}
             </div>
           )}
+
+          {/* Similar / Recommended TV Shows */}
+          <SimilarRecommendations
+            type="tv"
+            id={show.id}
+            genres={show.genres}
+          />
         </div>
       </div>
     </div>

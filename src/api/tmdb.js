@@ -135,9 +135,70 @@ export const getByGenre = (type = 'movie', genreIds, page = 1, sortBy = 'popular
   return fetchTMDB(`/discover/${type}`, params)
 }
 
+// Recommendations for a movie or TV show
+export const getRecommendations = (type = 'movie', id, page = 1) =>
+  fetchTMDB(`/${type}/${id}/recommendations`, { page })
+
+// Similar movies or TV shows
+export const getSimilar = (type = 'movie', id, page = 1) =>
+  fetchTMDB(`/${type}/${id}/similar`, { page })
+
+// Combined helper to get similar/recommended titles with genre fallback
+export const getSimilarOrRecommended = async (type = 'movie', id, genreIds = []) => {
+  try {
+    let combined = []
+
+    // 1. Try recommendations endpoint
+    try {
+      const rec = await getRecommendations(type, id)
+      if (rec.results?.length) {
+        combined = [...rec.results]
+      }
+    } catch {
+      // ignore
+    }
+
+    // 2. If fewer than 12, fetch similar titles
+    if (combined.length < 12) {
+      try {
+        const sim = await getSimilar(type, id)
+        if (sim.results?.length) {
+          const newItems = sim.results.filter(s => !combined.some(c => c.id === s.id))
+          combined = [...combined, ...newItems]
+        }
+      } catch {
+        // ignore
+      }
+    }
+
+    // 3. If still fewer than 12 and genreIds provided, discover by matching genres
+    if (combined.length < 12 && genreIds && genreIds.length > 0) {
+      try {
+        const genreStr = Array.isArray(genreIds) ? genreIds.slice(0, 3).join(',') : genreIds
+        const disc = await getByGenre(type, genreStr, 1, 'popularity.desc')
+        if (disc.results?.length) {
+          const newItems = disc.results.filter(d => !combined.some(c => c.id === d.id))
+          combined = [...combined, ...newItems]
+        }
+      } catch {
+        // ignore
+      }
+    }
+
+    // Exclude current title and ensure poster exists
+    return combined
+      .filter(item => String(item.id) !== String(id) && item.poster_path)
+      .slice(0, 12)
+  } catch (err) {
+    console.error('Failed to get similar items:', err)
+    return []
+  }
+}
+
 // VidSrc embed URLs
 export const getVidSrcMovie = (tmdbId) =>
   `https://vidsrc.me/embed/movie?tmdb=${tmdbId}`
 
 export const getVidSrcTV = (tmdbId, season, episode) =>
   `https://vidsrc.me/embed/tv?tmdb=${tmdbId}&season=${season}&episode=${episode}`
+
