@@ -14,10 +14,20 @@ export const supabase = isSupabaseConfigured
   ? createClient(supabaseUrl, supabaseAnonKey)
   : null
 
-// Helper to convert plain username to internal email for Supabase Auth
-export function usernameToEmail(username) {
-  const sanitized = username.trim().toLowerCase().replace(/[^a-z0-9_.-]/g, '')
-  return `${sanitized}@povertymovies.app`
+const DEVICE_ID_KEY = 'pm_device_session_id'
+
+// Persistent unique identifier for this browser/device instance
+export function getOrCreateDeviceId() {
+  try {
+    let deviceId = localStorage.getItem(DEVICE_ID_KEY)
+    if (!deviceId) {
+      deviceId = 'dev_' + Date.now() + '_' + Math.random().toString(36).substring(2, 11)
+      localStorage.setItem(DEVICE_ID_KEY, deviceId)
+    }
+    return deviceId
+  } catch {
+    return 'dev_' + Date.now()
+  }
 }
 
 // Preset avatars users can pick from
