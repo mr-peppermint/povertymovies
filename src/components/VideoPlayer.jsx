@@ -52,6 +52,7 @@ export default function VideoPlayer({
   const [selectedServer, setSelectedServer] = useState('vidsrc_me')
   const [isFullscreen, setIsFullscreen] = useState(false)
   const playerWrapperRef = useRef(null)
+  const iframeRef = useRef(null)
 
   const { user, profile, openAuthModal } = useAuth()
   const { sessionSeconds, isTracking, isTabActive } = useWatchTracker(true)
@@ -83,29 +84,28 @@ export default function VideoPlayer({
   }, [])
 
   function toggleFullscreen() {
-    const el = playerWrapperRef.current
-    if (!el) return
+    const fsElement =
+      document.fullscreenElement ||
+      document.webkitFullscreenElement ||
+      document.mozFullScreenElement ||
+      document.msFullscreenElement
 
-    if (!isFullscreen) {
-      if (el.requestFullscreen) {
-        el.requestFullscreen()
-      } else if (el.webkitRequestFullscreen) {
-        el.webkitRequestFullscreen()
-      } else if (el.mozRequestFullScreen) {
-        el.mozRequestFullScreen()
-      } else if (el.msRequestFullscreen) {
-        el.msRequestFullscreen()
-      }
+    if (fsElement) {
+      // Exit fullscreen
+      ;(document.exitFullscreen ||
+        document.webkitExitFullscreen ||
+        document.mozCancelFullScreen ||
+        document.msExitFullscreen
+      ).call(document)
     } else {
-      if (document.exitFullscreen) {
-        document.exitFullscreen()
-      } else if (document.webkitExitFullscreen) {
-        document.webkitExitFullscreen()
-      } else if (document.mozCancelFullScreen) {
-        document.mozCancelFullScreen()
-      } else if (document.msExitFullscreen) {
-        document.msExitFullscreen()
-      }
+      // Enter fullscreen on the wrapper div (contains the iframe)
+      const el = playerWrapperRef.current
+      if (!el) return
+      ;(el.requestFullscreen ||
+        el.webkitRequestFullscreen ||
+        el.mozRequestFullScreen ||
+        el.msRequestFullscreen
+      ).call(el)
     }
   }
 
@@ -177,13 +177,14 @@ export default function VideoPlayer({
 
       <div className="player-wrapper" ref={playerWrapperRef}>
         <iframe
+          ref={iframeRef}
           key={`${selectedServer}-${season}-${episode}`}
           src={activeSrc}
           title={title}
           allowFullScreen={true}
           webkitallowfullscreen="true"
           mozallowfullscreen="true"
-          allow="autoplay; fullscreen; picture-in-picture; encrypted-media; gyroscope; accelerometer; clipboard-write; screen-wake-lock"
+          allow="autoplay *; fullscreen *; encrypted-media *; picture-in-picture *; screen-wake-lock *; accelerometer *; gyroscope *; clipboard-write *"
           referrerPolicy="origin"
           scrolling="no"
         />
