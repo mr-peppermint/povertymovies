@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react'
-import { supabase, isSupabaseConfigured } from '../api/supabase'
+import { supabase, isSupabaseConfigured, getOrCreateDeviceId } from '../api/supabase'
 
 const AuthContext = createContext(null)
 
@@ -7,14 +7,14 @@ const LOCAL_STORAGE_PROFILE_KEY = 'pm_user_profile'
 const LOCAL_LEADERBOARD_KEY = 'pm_demo_leaderboard'
 
 const DEFAULT_DEMO_LEADERBOARD = [
-  { id: 'u1', username: 'CineMaster99', avatar_url: '👑', watch_time_seconds: 524000, created_at: new Date(Date.now() - 30 * 86400000).toISOString() },
-  { id: 'u2', username: 'MovieBuff_Dan', avatar_url: '🍿', watch_time_seconds: 412000, created_at: new Date(Date.now() - 25 * 86400000).toISOString() },
-  { id: 'u3', username: 'SciFi_Sarah', avatar_url: '👽', watch_time_seconds: 368000, created_at: new Date(Date.now() - 20 * 86400000).toISOString() },
-  { id: 'u4', username: 'RetroViewer', avatar_url: '🎞️', watch_time_seconds: 284000, created_at: new Date(Date.now() - 15 * 86400000).toISOString() },
-  { id: 'u5', username: 'PopcornAddict', avatar_url: '🔥', watch_time_seconds: 215000, created_at: new Date(Date.now() - 10 * 86400000).toISOString() },
-  { id: 'u6', username: 'MidnightWatcher', avatar_url: '🥷', watch_time_seconds: 162000, created_at: new Date(Date.now() - 8 * 86400000).toISOString() },
-  { id: 'u7', username: 'AnimeFanatic', avatar_url: '🤖', watch_time_seconds: 98000, created_at: new Date(Date.now() - 5 * 86400000).toISOString() },
-  { id: 'u8', username: 'FilmWizard', avatar_url: '🧙', watch_time_seconds: 45000, created_at: new Date(Date.now() - 2 * 86400000).toISOString() },
+  { id: 'u1', username: 'CineMaster99', avatar_url: '👑', watch_time_seconds: 524000, active_session_id: null, created_at: new Date(Date.now() - 30 * 86400000).toISOString() },
+  { id: 'u2', username: 'MovieBuff_Dan', avatar_url: '🍿', watch_time_seconds: 412000, active_session_id: null, created_at: new Date(Date.now() - 25 * 86400000).toISOString() },
+  { id: 'u3', username: 'SciFi_Sarah', avatar_url: '👽', watch_time_seconds: 368000, active_session_id: null, created_at: new Date(Date.now() - 20 * 86400000).toISOString() },
+  { id: 'u4', username: 'RetroViewer', avatar_url: '🎞️', watch_time_seconds: 284000, active_session_id: null, created_at: new Date(Date.now() - 15 * 86400000).toISOString() },
+  { id: 'u5', username: 'PopcornAddict', avatar_url: '🔥', watch_time_seconds: 215000, active_session_id: null, created_at: new Date(Date.now() - 10 * 86400000).toISOString() },
+  { id: 'u6', username: 'MidnightWatcher', avatar_url: '🥷', watch_time_seconds: 162000, active_session_id: null, created_at: new Date(Date.now() - 8 * 86400000).toISOString() },
+  { id: 'u7', username: 'AnimeFanatic', avatar_url: '🤖', watch_time_seconds: 98000, active_session_id: null, created_at: new Date(Date.now() - 5 * 86400000).toISOString() },
+  { id: 'u8', username: 'FilmWizard', avatar_url: '🧙', watch_time_seconds: 45000, active_session_id: null, created_at: new Date(Date.now() - 2 * 86400000).toISOString() },
 ]
 
 export function AuthProvider({ children }) {
@@ -33,8 +33,10 @@ export function AuthProvider({ children }) {
   const profileRef = useRef(null)
   profileRef.current = profile
 
-  // Refresh profile from Supabase on mount
+  // Refresh profile and verify single-device session integrity
   const refreshProfile = useCallback(async () => {
+    const deviceId = getOrCreateDeviceId()
+
     if (!isSupabaseConfigured || !supabase || !profileRef.current?.username) {
       setLoading(false)
       return
@@ -48,6 +50,27 @@ export function AuthProvider({ children }) {
         .maybeSingle()
 
       if (!error && data) {
+        // If profile was logged into from another place, clear local session
+        if (data.active_session_id && data.active_session_id !== deviceId) {
+          localStorage.removeItem(LOCAL_STORAGE_PROFILE_KEY)
+          setProfile(null)
+          return
+        }
+
+        // If active_session_id is missing, bind it to this device
+        if (!data.active_session_id) {
+          await supabase
+            .from('profiles')
+            .update({
+              active_session_id: deviceId,
+              last_active_at: new Date().toISOString(),
+              updated_at: new Date().toISOString()
+            })
+            .eq('id', data.id)
+            .catch(() => {})
+          data.active_session_id = deviceId
+        }
+
         setProfile(data)
         localStorage.setItem(LOCAL_STORAGE_PROFILE_KEY, JSON.stringify(data))
       }
@@ -62,9 +85,11 @@ export function AuthProvider({ children }) {
     refreshProfile()
   }, [refreshProfile])
 
-  // Create New Username (Passwordless)
+  // Create New Username (Passwordless & Bound to Current Device)
   const createUsername = async ({ username, avatarUrl = '🍿' }) => {
     const cleanUsername = username.trim()
+    const deviceId = getOrCreateDeviceId()
+
     if (!cleanUsername || cleanUsername.length < 3) {
       throw new Error('Username must be at least 3 characters long.')
     }
@@ -73,12 +98,13 @@ export function AuthProvider({ children }) {
     }
 
     if (!isSupabaseConfigured || !supabase) {
-      // Demo mode
+      // Local demo mode
       const newProfile = {
         id: 'user_' + Date.now(),
         username: cleanUsername,
         avatar_url: avatarUrl,
         watch_time_seconds: 0,
+        active_session_id: deviceId,
         created_at: new Date().toISOString()
       }
       localStorage.setItem(LOCAL_STORAGE_PROFILE_KEY, JSON.stringify(newProfile))
@@ -104,7 +130,7 @@ export function AuthProvider({ children }) {
     try {
       const { data: existing } = await supabase
         .from('profiles')
-        .select('id, username')
+        .select('id, username, active_session_id')
         .ilike('username', cleanUsername)
         .maybeSingle()
 
@@ -123,6 +149,8 @@ export function AuthProvider({ children }) {
       username: cleanUsername,
       avatar_url: avatarUrl,
       watch_time_seconds: 0,
+      active_session_id: deviceId,
+      last_active_at: new Date().toISOString(),
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString()
     }
@@ -134,7 +162,6 @@ export function AuthProvider({ children }) {
       .single()
 
     if (error) {
-      // If table doesn't exist yet, give friendly advice
       if (error.code === '42P01') {
         throw new Error('Database table not created yet! Please run the SQL script in your Supabase SQL Editor.')
       }
@@ -148,9 +175,11 @@ export function AuthProvider({ children }) {
     return savedProfile
   }
 
-  // Log In With Existing Username (Passwordless)
+  // Log In With Existing Username (Enforces 1 Place Only)
   const loginWithUsername = async (username) => {
     const cleanUsername = username.trim()
+    const deviceId = getOrCreateDeviceId()
+
     if (!cleanUsername) {
       throw new Error('Please enter your username.')
     }
@@ -172,6 +201,7 @@ export function AuthProvider({ children }) {
         username: cleanUsername,
         avatar_url: '🍿',
         watch_time_seconds: 0,
+        active_session_id: deviceId,
         created_at: new Date().toISOString()
       }
       localStorage.setItem(LOCAL_STORAGE_PROFILE_KEY, JSON.stringify(demoUser))
@@ -192,17 +222,57 @@ export function AuthProvider({ children }) {
     }
 
     if (!data) {
-      throw new Error(`Username "${cleanUsername}" was not found. Please click "Create New Username" to get started!`)
+      throw new Error(`Username "${cleanUsername}" was not found. Click "Create a username" to register!`)
     }
 
-    localStorage.setItem(LOCAL_STORAGE_PROFILE_KEY, JSON.stringify(data))
-    setProfile(data)
+    // Enforce 1 Device / 1 Place Login Rule
+    if (data.active_session_id && data.active_session_id !== deviceId) {
+      throw new Error(
+        `Username "@${data.username}" is currently logged in on another device/browser. You must log out from that device first before logging in here.`
+      )
+    }
+
+    // Bind this username session to current device
+    const { data: updatedProfile, error: updateError } = await supabase
+      .from('profiles')
+      .update({
+        active_session_id: deviceId,
+        last_active_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', data.id)
+      .select()
+      .single()
+
+    if (updateError) {
+      console.warn('Could not update active_session_id:', updateError.message)
+    }
+
+    const finalProfile = updatedProfile || { ...data, active_session_id: deviceId }
+    localStorage.setItem(LOCAL_STORAGE_PROFILE_KEY, JSON.stringify(finalProfile))
+    setProfile(finalProfile)
     setAuthModalOpen(false)
-    return data
+    return finalProfile
   }
 
-  // Sign Out
-  const signOut = () => {
+  // Sign Out (Unbinds the Username from this Device)
+  const signOut = async () => {
+    const currentProfile = profileRef.current
+
+    if (isSupabaseConfigured && supabase && currentProfile?.id) {
+      try {
+        await supabase
+          .from('profiles')
+          .update({
+            active_session_id: null,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', currentProfile.id)
+      } catch (err) {
+        console.warn('Failed to clear active session in DB:', err)
+      }
+    }
+
     localStorage.removeItem(LOCAL_STORAGE_PROFILE_KEY)
     setProfile(null)
   }
@@ -249,6 +319,7 @@ export function AuthProvider({ children }) {
           .from('profiles')
           .update({
             watch_time_seconds: updatedSeconds,
+            last_active_at: new Date().toISOString(),
             updated_at: new Date().toISOString()
           })
           .eq('id', currentProfile.id)
