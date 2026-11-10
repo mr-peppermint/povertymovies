@@ -24,8 +24,9 @@ export default function Footer() {
 
         <div className="footer-bottom">
           <p>
-            This site is only for EDUCATION purposes =) and for people in poverty.
-            Video content is embedded from api sources. More stats are not for you just watch movie and series why u even reding this.
+            Movie and TV metadata and images are provided by{' '}
+            <a href="https://www.themoviedb.org/" target="_blank" rel="noreferrer">TMDB</a>.
+            {' '}This product uses the TMDB API but is not endorsed or certified by TMDB.
           </p>
           <p style={{ marginTop: '6px' }}>© {new Date().getFullYear()} PovertyMovies · By yours Dixit =3 </p>
         </div>

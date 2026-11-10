@@ -1228,6 +1228,12 @@ input {
   line-height: 1.8;
 }
 
+.footer-bottom a {
+  color: var(--text-primary);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
 /* ============================================
    RESPONSIVE ADJUSTMENTS
    ============================================ */
